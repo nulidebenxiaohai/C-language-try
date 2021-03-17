@@ -24,6 +24,10 @@ char new_code[5]={'0','0','0','0','\0'};
 int state=1;//means the state of system
 int code_right=0;
 int code_wrong=0;
+int exit_clk=0;
+int entry_clk=0;
+int alarm_clk=0;
+
 void setup()
 {
   Serial.begin(9600);
@@ -97,10 +101,12 @@ void loop()
 
   //system
   if (state==1){// it is unset state
+      lcd.setCursor(0, 0);
       lcd.print("Unset state");
       if (code_right==1)
       {
           state=2;
+          code_wrong=0;
       }
       else if (code_wrong==3)
       {
@@ -108,18 +114,114 @@ void loop()
           code_wrong=0;
       }  
   }
-  else if (state==2)
+
+  else if (state==2)//it is exit state
   {
-      lcd.print("Exit state");
+      lcd.setCursor(0, 0);
+      lcd.print("Exit state");//show state on lcd
+      if (digitalRead(2))//if there is activation on sensor
+      {
+        state=5;//change to the alarm state
+      }
+      //alarm LED blink after 500ms
+      digitalWrite(3, HIGH);
+      delay(500); 
+      digitalWrite(3, LOW);
+      delay(500); 
+      exit_clk=exit_clk+1;
+      if (exit_clk==60)
+      {
+          state=3;//change to the set state after 1 minute
+          exit_clk=0;
+      }
+      if (code_right==1)
+      {
+          state=1;
+          code_wrong=0;
+      }
+      else if (code_wrong==3)
+      {
+          state=5;
+          code_wrong=0;
+      } 
+  }
+
+  else if (state==3)// it is set state
+  {
+      lcd.setCursor(0, 0);
+      lcd.print("Set state");
+      if (digitalRead(2))//if there is activation on sensor
+      {
+        state=5;//change to the alarm state
+      }
+      if (digitalRead(4))//if there is activation on entrance
+      {
+        state=4;//change to the entry state
+      }
   }
   
-  else if (state=5)
+  else if (state==4)
   {
-      lcd.print("Alarm state");
+      lcd.setCursor(0, 0);
+      lcd.print("Entry state");
       digitalWrite(3, HIGH);
+      delay(500); 
+      digitalWrite(3, LOW);
+      delay(500); 
+      entry_clk=entry_clk+1;
+      if (entry_clk==120)
+      {
+          state=5;//change to the alarm state after 2 minutes
+          entry_clk==0;
+      }
+      if (code_right==1)
+      {
+          state=1;
+          code_wrong=0;
+      }
+      if (digitalRead(2))//if there is activation on sensor
+      {
+        state=5;//change to the alarm state
+      }
   }
   
 
+  else if (state==5)//it is alarm state
+  {
+      lcd.setCursor(0, 0);
+      lcd.print("Alarm state");
+      digitalWrite(3, HIGH);
+      delay(500);
+      alarm_clk=alarm_clk+1;
+      if (alarm_clk==240)
+      {
+          digitalWrite(3,LOW);//change to the alarm state after 2 minutes
+          alarm_clk==0;
+      }
+      if (code_right==1)
+      {
+          state=6;
+          code_wrong=0;
+      }
+      else
+      {
+          state=5;
+      }
+  }
+  
+  else if (state==6)
+  {
+      lcd.setCursor(0, 0);
+      lcd.print("Code error 1");  
+      lcd.setCursor(0, 1);
+      lcd.print("C key to clear");
+      if (input=='C')
+      {
+        state=1;
+      }
+      
+  }
+  
 
 
 }
