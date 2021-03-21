@@ -80,11 +80,11 @@ void loop()
       }
     }
     
-     if (c==4){                  //there are 4 number
-     lcd.setCursor(0, 0);
-     lcd.print("Press B to set");//let user to press B
-     delay(1);
-    }
+     //if (c==4){                  //there are 4 number
+     //lcd.setCursor(0, 0);
+     //lcd.print("Press B to set");//let user to press B
+    // delay(1);
+   // }
     c=c+1;
   }
   }
@@ -101,10 +101,10 @@ void loop()
                                //judge if the code if right
     if (new_code[0]==store_code[0]&&new_code[1]==store_code[1]&&new_code[2]==store_code[2]&&new_code[3]==store_code[3])
     {
-      lcd.setCursor(0, 0);
-      lcd.print("                 "); 
-      lcd.setCursor(5, 0);
-      lcd.print("CE323 A1"); 
+      //lcd.setCursor(0, 0);
+      //lcd.print("                 "); 
+      //lcd.setCursor(5, 0);
+      //lcd.print("CE323 A1"); 
       lcd.setCursor(0, 1);
       lcd.print("Code:____");
       c=1;                    //give a value to c to let user enter the code again
@@ -125,7 +125,7 @@ void loop()
   //system of state
   if (state==1){                           // it is unset state
       lcd.setCursor(0, 0);
-      lcd.print("Unset state");            //print that it is unset state
+      lcd.print("Unset state     ");            //print that it is unset state
       if (code_right==1)                   //the code is right
       {
           state=2;                         //code right so change to exit state
@@ -144,7 +144,7 @@ void loop()
   else if (state==2)                      //it is exit state
   {
       lcd.setCursor(0, 0);
-      lcd.print("Exit state");            //show state on lcd
+      lcd.print("Exit state      ");            //show state on lcd
       if (digitalRead(2))                 //if there is activation on sensor
       {
         state=5;                          //change to the alarm state
@@ -185,7 +185,7 @@ void loop()
   else if (state==3)                      // it is set state
   {
       lcd.setCursor(0, 0);
-      lcd.print("Set state");             //print it it set state
+      lcd.print("Set state       ");             //print it it set state
       if (digitalRead(2))                 //if there is activation on sensor
       {
         state=5;                          //change to the alarm state
@@ -200,8 +200,8 @@ void loop()
   
   else if (state==4)                      //it is entry state
   {
-      lcd.setCursor(0, 0);
-      lcd.print("Entry state");
+      lcd.setCursor(0, 0); 
+      lcd.print("Entry state     ");
                                           //alarm LED blink
       if(a==0){
         digitalWrite(3,0);
@@ -236,7 +236,7 @@ void loop()
   else if (state==5)                     //it is alarm state
   {
       lcd.setCursor(0, 0);
-      lcd.print("Alarm state");
+      lcd.print("Alarm state     ");
       digitalWrite(3, HIGH);
 
       if (millis()-alarm_clk>120000)     //it has remained in alarm state for 120s(2 minutes)
@@ -267,10 +267,13 @@ void loop()
       if (input=='C')
       {
         state=1;                         //press c to change to unset state
+        lcd.setCursor(0, 1);     //make sure the location of input
+        lcd.print("Code:____       ");  //the content printed on lcd
       }
       
   }
-  Serial.print(code_wrong);
-
+  Serial.println(state);
+  Serial.println(millis());
+  Serial.println(exit_clk);
 
 }
