@@ -21,12 +21,12 @@ Keypad keypad = Keypad(makeKeymap(keys),rowpins,colpins,row,col);
 int c=1;//c means the state of input
 char store_code[5]={'1','2','3','4','\0'}; //Store a password
 char new_code[5]={'0','0','0','0','\0'};
-int state=1;       //means the state of system
-int code_right=0;  //judge if the code is right
-int code_wrong=0;  //count the number of wrong code
-int exit_clk=0;    //clock for exit state
-int entry_clk=0;   //clock fo entry state
-int alarm_clk=0;   //clock for alarm state
+int states=1;       //means the state of system
+int right_code_time=0;  //judge if the code is right
+int wrong_code_time=0;  //count the number of wrong code
+long unsigned exit_state_clk=0;    //clock for exit state
+long unsigned entry_state_clk=0;   //clock fo entry state
+long unsigned alarm_state_clk=0;   //clock for alarm state
 
 int a;            //define a vairble used in function fals
 void fals(){      //function of timeout
@@ -108,7 +108,7 @@ void loop()
       lcd.setCursor(0, 1);
       lcd.print("Code:____");
       c=1;                    //give a value to c to let user enter the code again
-      code_right=1;           //means the code is right
+      right_code_time=1;           //means the code is right
     }
     else
     {                               
@@ -116,40 +116,40 @@ void loop()
       lcd.setCursor(0, 1);
       lcd.print("Code:____");
       c=1;                                //give a value to c to let user enter the code again
-      code_wrong=code_wrong+1;            //every time the code is wrong, it will be added by 1
+      wrong_code_time=wrong_code_time+1;            //every time the code is wrong, it will be added by 1
     }
     delay(1);
     }
   }
 
   //system of state
-  if (state==1){                           // it is unset state
+  if (states==1){                           // it is unset state
       lcd.setCursor(0, 0);
       lcd.print("Unset state     ");            //print that it is unset state
-      if (code_right==1)                   //the code is right
+      if (right_code_time==1)                   //the code is right
       {
-          state=2;                         //code right so change to exit state
-          code_wrong=0;                    //set the wrong time to zero
-          exit_clk=millis();               //record the time of entering to the exit state
-          code_right=0;                    //set the right time to zero
+          states=2;                         //code right so change to exit state
+          wrong_code_time=0;                    //set the wrong time to zero
+          exit_state_clk=millis();               //record the time of entering to the exit state
+          right_code_time=0;                    //set the right time to zero
       }
-      else if (code_wrong==3)              //enter the wrong code 3 times
+      else if (wrong_code_time==3)              //enter the wrong code 3 times
       {
-          state=5;                         //so enter to the alarm state 
-          code_wrong=0;
-          alarm_clk=millis();              //record the time of entering to the alarm state
+          states=5;                         //so enter to the alarm state 
+          wrong_code_time=0;
+          alarm_state_clk=millis();              //record the time of entering to the alarm state
       }  
   }
 
-  else if (state==2)                      //it is exit state
+  else if (states==2)                      //it is exit state
   {
       lcd.setCursor(0, 0);
       lcd.print("Exit state      ");            //show state on lcd
       if (digitalRead(2))                 //if there is activation on sensor
       {
-        state=5;                          //change to the alarm state
-        alarm_clk=millis();               //record the time of entering to the alarm state
-        exit_clk=0;  
+        states=5;                          //change to the alarm state
+        alarm_state_clk=millis();               //record the time of entering to the alarm state
+        exit_state_clk=0;  
       }
       //alarm LED blink
       if(a==0){
@@ -159,46 +159,46 @@ void loop()
         digitalWrite(3,1);
       }
       
-      if (code_right==1)
+      if (right_code_time==1)
       {
-          state=1;                        //code is right, change to unset state
-          code_wrong=0;
-          code_right=0;
-          exit_clk=0;  
+          states=1;                        //code is right, change to unset state
+          wrong_code_time=0;
+          right_code_time=0;
+          exit_state_clk=0;  
       }
-      else if (code_wrong==3)
+      else if (wrong_code_time==3)
       {
-          state=5;
-          code_wrong=0;
-          alarm_clk=millis();
-          exit_clk=0;  
+          states=5;
+          wrong_code_time=0;
+          alarm_state_clk=millis();
+          exit_state_clk=0;  
       } 
 
-      if (millis()-exit_clk>60000)        //it has remained in exit state for 60s(1 minute)
+      if (millis()-exit_state_clk>60000)        //it has remained in exit state for 60s(1 minute)
       {
-         state=3;                         //period finished, change to set state
-         exit_clk=0;                      //set exit clock to zero
+         states=3;                         //period finished, change to set state
+         exit_state_clk=0;                      //set exit clock to zero
       }
       
   }
 
-  else if (state==3)                      // it is set state
+  else if (states==3)                      // it is set state
   {
       lcd.setCursor(0, 0);
       lcd.print("Set state       ");             //print it it set state
       if (digitalRead(2))                 //if there is activation on sensor
       {
-        state=5;                          //change to the alarm state
-        alarm_clk=millis();               //record the time of entering to the alarm state
+        states=5;                          //change to the alarm state
+        alarm_state_clk=millis();               //record the time of entering to the alarm state
       }
       if (digitalRead(4))                 //if there is activation on entrance
       {
-        state=4;                          //change to the entry state
-        entry_clk=millis();               //record the time of entering to the entry state
+        states=4;                          //change to the entry state
+        entry_state_clk=millis();               //record the time of entering to the entry state
       }
   }
   
-  else if (state==4)                      //it is entry state
+  else if (states==4)                      //it is entry state
   {
       lcd.setCursor(0, 0); 
       lcd.print("Entry state     ");
@@ -210,55 +210,55 @@ void loop()
         digitalWrite(3,1);
       }
       
-      if (millis()-entry_clk>120000)      //it has remained in entry state for 120s(2 minutes)
+      if (millis()-entry_state_clk>120000)      //it has remained in entry state for 120s(2 minutes)
       {
-         state=5;                         //change to the alarm state
-         entry_clk=0;
-         alarm_clk=millis();
+         states=5;                         //change to the alarm state
+         entry_state_clk=0;
+         alarm_state_clk=millis();
       }
 
-      if (code_right==1)
+      if (right_code_time==1)
       {
-          state=1;
-          code_wrong=0;
-          code_right=0;
-          entry_clk=0;
+          states=1;
+          wrong_code_time=0;
+          right_code_time=0;
+          entry_state_clk=0;
       }
       if (digitalRead(2))                 //if there is activation on sensor
       {
-        state=5;                          //change to the alarm state
-        alarm_clk=millis();
-        entry_clk=0;
+        states=5;                          //change to the alarm state
+        alarm_state_clk=millis();
+        entry_state_clk=0;
       }
   }
   
 
-  else if (state==5)                     //it is alarm state
+  else if (states==5)                     //it is alarm state
   {
       lcd.setCursor(0, 0);
       lcd.print("Alarm state     ");
       digitalWrite(3, HIGH);
 
-      if (millis()-alarm_clk>120000)     //it has remained in alarm state for 120s(2 minutes)
+      if (millis()-alarm_state_clk>120000)     //it has remained in alarm state for 120s(2 minutes)
       {
          digitalWrite(3,LOW);            //disable the alarm LED
-         alarm_clk=0;
+         alarm_state_clk=0;
       }
 
-      if (code_right==1)                 //the coede is right
+      if (right_code_time==1)                 //the coede is right
       {
-          state=6;                       //change to report state
-          code_wrong=0;
-          code_right=0;
-          alarm_clk=0;
+          states=6;                       //change to report state
+          wrong_code_time=0;
+          right_code_time=0;
+          alarm_state_clk=0;
       }
       else                               //the code is not right
       {
-          state=5;                       //stay in alarm state
+          states=5;                       //stay in alarm state
       }
   }
   
-  else if (state==6)                     //it is report state
+  else if (states==6)                     //it is report state
   {
       lcd.setCursor(0, 0);
       lcd.print("Code error 1");         //print the wrong information in the first line
@@ -266,14 +266,14 @@ void loop()
       lcd.print("C key to clear");       //let user to press C
       if (input=='C')
       {
-        state=1;                         //press c to change to unset state
+        states=1;                         //press c to change to unset state
         lcd.setCursor(0, 1);     //make sure the location of input
         lcd.print("Code:____       ");  //the content printed on lcd
       }
       
   }
-  Serial.println(state);
+  Serial.println(states);
   Serial.println(millis());
-  Serial.println(exit_clk);
+  Serial.println(exit_state_clk);
 
 }
